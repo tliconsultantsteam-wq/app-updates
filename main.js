@@ -1,7 +1,7 @@
 const { app, BrowserWindow, Menu, shell, ipcMain } = require("electron");
 const path = require("path");
 
-const ONLINE_URL   = "https://claude.ai/artifact/9pzH2zaNJTDiCRstMiC3kb";
+const ONLINE_URL   = null; // Χωρίς online mode — όλα τοπικά μέσω offline-app.html
 const OFFLINE_FILE = path.join(__dirname, "offline-app.html");
 
 let db;
@@ -103,19 +103,13 @@ function createWindow() {
   });
   win.once("ready-to-show", ()=>win.show());
   win.webContents.setWindowOpenHandler(({url})=>{shell.openExternal(url);return{action:"deny"};});
-  let triedOffline=false;
-  win.webContents.on("did-fail-load",(e,code,desc,url,isMain)=>{
-    if(!isMain||triedOffline||code===-3)return;
-    triedOffline=true;
-    win.loadFile(OFFLINE_FILE).then(()=>win.webContents.executeJavaScript(BANNER).catch(()=>{}));
-  });
-  win.loadURL(ONLINE_URL);
+  win.loadFile(OFFLINE_FILE);
   return win;
 }
 
 Menu.setApplicationMenu(Menu.buildFromTemplate([{
   label:"Αρχείο", submenu:[
-    {label:"Επαναφόρτωση Online", accelerator:"CmdOrCtrl+R", click:(_,win)=>{if(win)win.loadURL(ONLINE_URL);}},
+    {label:"Επαναφόρτωση", accelerator:"CmdOrCtrl+R", click:(_,win)=>{if(win)win.loadFile(OFFLINE_FILE);}},
     {type:"separator"},
     {label:"Άνοιγμα φακέλου δεδομένων", click:()=>shell.openPath(app.getPath("userData"))},
     {type:"separator"},
